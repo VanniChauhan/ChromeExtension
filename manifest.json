@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "URL Saver",
+  "version": "1.0",
+  "description": "Save URLs with chrome.storage.sync",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "URL Saver"
+  }
+}
