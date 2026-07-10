@@ -1,15 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extension</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Saver</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <button id="input-btn">SAVE CURRENT URL</button>
-    <h3>Saved URLs:</h3>
-    <ul id="ul-el"></ul>
-    <script src="index.js"></script>
+  <div class="popup" role="application" aria-label="URL Saver">
+
+    <!-- Header -->
+    <header class="header">
+      <h1 class="header__title">URL Saver</h1>
+      <button
+        id="settings-btn"
+        class="icon-btn"
+        type="button"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-label="Open settings menu"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="5" cy="12" r="2" fill="currentColor" />
+          <circle cx="12" cy="12" r="2" fill="currentColor" />
+          <circle cx="19" cy="12" r="2" fill="currentColor" />
+        </svg>
+      </button>
+
+      <!-- Settings menu (hidden until opened) -->
+      <div id="settings-menu" class="settings-menu" hidden role="menu" aria-label="Settings">
+        <button id="storage-toggle" class="settings-menu__item" role="menuitemradio" aria-checked="false" type="button">
+          <span id="storage-toggle-label">Storage: Local</span>
+        </button>
+        <button id="export-btn" class="settings-menu__item" role="menuitem" type="button">Export links (.json)</button>
+        <button id="clear-all-btn" class="settings-menu__item settings-menu__item--danger" role="menuitem" type="button">Delete all links</button>
+      </div>
+    </header>
+
+    <!-- Primary action -->
+    <button id="save-btn" class="save-btn" type="button" aria-label="Save current tab URL">
+      <svg class="save-btn__icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+      </svg>
+      <span class="save-btn__label">Save current URL</span>
+    </button>
+
+    <!-- Search / filter -->
+    <div class="search">
+      <svg class="search__icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none" />
+        <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Filter saved links…"
+        aria-label="Filter saved links"
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- List -->
+    <ul id="list" class="list" aria-live="polite"></ul>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="empty-state" hidden>
+      <svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
+        <rect x="10" y="16" width="44" height="34" rx="4" fill="none" stroke="currentColor" stroke-width="2.5" />
+        <path d="M18 26h28M18 34h20M18 42h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+      </svg>
+      <p class="empty-state__title">No saved links yet</p>
+      <p class="empty-state__hint">Click "Save current URL" to add your first one.</p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  </div>
+
+  <script src="index.js"></script>
 </body>
 </html>
