@@ -1,6 +1,7 @@
 :root {
   --bg: #0a0f21;
   --bg-raised: #131a33;
+  --bg-raised-2: #1a2242;
   --border: #232b4d;
   --text: #e7e6e6;
   --text-muted: #8790b3;
@@ -11,6 +12,14 @@
   --radius: 10px;
   --radius-sm: 6px;
   --transition: 160ms ease;
+
+  --cat-video: #ff6b6b;
+  --cat-social: #4ecdc4;
+  --cat-docs: #ffd166;
+  --cat-shopping: #a78bfa;
+  --cat-reading: #60a5fa;
+  --cat-search: #34d399;
+  --cat-general: #8790b3;
 }
 
 * {
@@ -23,9 +32,7 @@ html, body {
 }
 
 body {
-  width: 360px;
-  max-height: 360px;
-  overflow: hidden;
+  width: 380px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -35,7 +42,27 @@ body {
 .popup {
   display: flex;
   flex-direction: column;
-  max-height: 360px;
+  position: relative;
+}
+
+/* ---------- Standalone preview (opened as a plain browser tab, not
+   loaded as an unpacked extension). Chrome sizes a real popup to fit
+   .popup automatically, so this rule only ever applies outside the
+   extension — it centers the demo on a dark backdrop instead of the
+   card sitting flush in the corner of a blank white tab. ---------- */
+body.standalone-preview {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 20%, #161d3d 0%, #060812 70%);
+}
+
+body.standalone-preview .popup {
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--border);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 /* ---------- Header ---------- */
@@ -44,7 +71,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px 6px;
+  padding: 12px 12px 6px;
+}
+
+.header__left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
 }
 
 .header__title {
@@ -52,6 +86,27 @@ body {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.preview-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--cat-docs);
+  background: rgba(255, 209, 102, 0.12);
+  border: 1px solid rgba(255, 209, 102, 0.35);
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.header__actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .icon-btn {
@@ -82,13 +137,13 @@ input:focus-visible {
 .settings-menu {
   position: absolute;
   top: 38px;
-  right: 12px;
+  right: 0;
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   min-width: 170px;
   padding: 4px;
-  z-index: 10;
+  z-index: 20;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
@@ -113,53 +168,12 @@ input:focus-visible {
   color: var(--danger);
 }
 
-.save-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: 4px 12px 10px;
-  padding: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  background: var(--accent-strong);
-  color: white;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background var(--transition), transform var(--transition);
-}
-
-.save-btn:hover {
-  background: var(--accent);
-}
-
-.save-btn:active {
-  transform: scale(0.98);
-}
-
-.save-btn:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.save-btn.is-saved {
-  background: var(--success);
-}
-
-.save-btn__icon {
-  transition: transform var(--transition);
-}
-
-.save-btn.is-saved .save-btn__icon {
-  transform: rotate(45deg);
-}
-
+/* ---------- Search ---------- */
 .search {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 12px 8px;
+  margin: 4px 12px 8px;
   padding: 6px 8px;
   background: var(--bg-raised);
   border: 1px solid var(--border);
@@ -184,13 +198,202 @@ input:focus-visible {
   color: var(--text-muted);
 }
 
+/* ---------- Orbit view ---------- */
+.orbit-view {
+  position: relative;
+}
+
+.orbit-stage {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+}
+
+.orbit-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 1px dashed var(--border);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.orbit-hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: white;
+  background: radial-gradient(circle at 35% 30%, var(--accent) 0%, var(--accent-strong) 78%);
+  box-shadow: 0 0 0 5px rgba(238, 78, 78, 0.1), 0 6px 20px rgba(238, 78, 78, 0.25);
+  z-index: 5;
+}
+
+.orbit-hub__count {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.orbit-hub__label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.85;
+}
+
+.orbit-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px; /* center on its computed x/y */
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: var(--bg-raised-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  z-index: 4;
+}
+
+.orbit-node:hover {
+  border-color: var(--node-color, var(--accent));
+}
+
+.orbit-node__icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--node-color, var(--accent));
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.orbit-node__label {
+  font-size: 8.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.orbit-node__badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--node-color, var(--accent));
+  color: #0a0f21;
+  font-size: 9.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbit-empty {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  padding: 0 24px;
+  margin-top: -170px; /* overlay in place of an empty stage */
+  color: var(--text-muted);
+}
+
+.orbit-view.is-empty .orbit-stage > *:not(#orbit-hub):not(#orbit-ring) {
+  display: none;
+}
+
+.orbit-view.is-empty .orbit-empty {
+  display: flex;
+}
+
+.orbit-empty__title {
+  margin: 6px 0 0;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.orbit-empty__hint {
+  margin: 0;
+  font-size: 11.5px;
+}
+
+/* Flight dot used for the "save" animation (see index.js) */
+.flight-dot {
+  position: fixed;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px 2px rgba(238, 78, 78, 0.7);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ---------- List view ---------- */
+.list-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  max-height: 240px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin: 2px 12px 6px;
+  padding: 4px 8px 4px 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  color: var(--text);
+  background: var(--bg-raised);
+}
+
 .list {
   list-style: none;
   margin: 0;
   padding: 0 6px 6px;
   overflow-y: auto;
   flex: 1;
-  min-height: 40px;
 }
 
 .list::-webkit-scrollbar {
@@ -215,6 +418,14 @@ input:focus-visible {
 
 .item:hover {
   background: var(--bg-raised);
+}
+
+.item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--node-color, var(--text-muted));
 }
 
 .item__favicon {
@@ -265,53 +476,20 @@ input:focus-visible {
   height: 14px;
 }
 
-.item {
-  animation: item-in 180ms ease;
-}
-
-.item.is-removing {
-  animation: item-out 160ms ease forwards;
-}
-
-@keyframes item-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes item-out {
-  from {
-    opacity: 1;
-    max-height: 56px;
-    margin-bottom: 4px;
-  }
-  to {
-    opacity: 0;
-    max-height: 0;
-    margin-bottom: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-}
-
+/* ---------- Empty state (list view, category has no links) ---------- */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   padding: 28px 20px;
   color: var(--text-muted);
   text-align: center;
 }
 
 .empty-state__title {
-  margin: 4px 0 0;
+  margin: 0;
   font-weight: 600;
   color: var(--text);
   font-size: 12.5px;
@@ -322,19 +500,62 @@ input:focus-visible {
   font-size: 11.5px;
 }
 
+/* ---------- Primary CTA ---------- */
+.save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 12px 12px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--accent-strong);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.save-btn:hover {
+  background: var(--accent);
+}
+
+.save-btn:active {
+  transform: scale(0.98);
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.save-btn.is-saved {
+  background: var(--success);
+}
+
+.save-btn__icon {
+  transition: transform var(--transition);
+}
+
+.save-btn.is-saved .save-btn__icon {
+  transform: rotate(45deg);
+}
+
 /* ---------- Toast ---------- */
 .toast {
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 10px;
+  bottom: 62px;
   padding: 8px 10px;
   font-size: 12px;
   border-radius: var(--radius-sm);
   background: var(--bg-raised);
   border: 1px solid var(--border);
   color: var(--text);
-  animation: toast-in 180ms ease;
+  z-index: 30;
 }
 
 .toast--error {
@@ -342,17 +563,9 @@ input:focus-visible {
   color: var(--danger);
 }
 
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* ---------- Reduced motion ---------- */
+/* GSAP animations are skipped in JS when this is true; this CSS layer
+   is a fallback for anything animated purely with CSS. */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
